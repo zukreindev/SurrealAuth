@@ -5,7 +5,7 @@ Golang auth system with GoFiber and SurrealDb
 
 In this project I wrote an authentication system using **gofiber** and **surrealdb**, you can use it by filling the requirements and use it as a reference for your projects.
 
-## Projede kullandığım paketler
+## Packages I used in the project
 
 - [color](github.com/fatih/color) - color library for console messages
 - [go-fiber](github.com/gofiber/fiber/v2) - http framework
