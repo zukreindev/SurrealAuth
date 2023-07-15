@@ -21,11 +21,11 @@ To install packages
 ```
 SurrealDb download and launch
 ```cmd
-	macos: brew install surrealdb/tap/surreal
-	linux: curl  -sSf https://install.surrealdb.com |  sh
-	windows: iwr https://windows.surrealdb.com -useb  | iex
+macos: brew install surrealdb/tap/surreal
+linux: curl  -sSf https://install.surrealdb.com |  sh
+windows: iwr https://windows.surrealdb.com -useb  | iex
 
-	Start Command: surreal start --user root --pass root
+Start Command: surreal start --user root --pass root
 ``` 
 
 ## Support
