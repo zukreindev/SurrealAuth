@@ -3,8 +3,8 @@ package database
 import (
 	"FiberAuthWithSurrealDb/Util"
 	"fmt"
-
 	"github.com/surrealdb/surrealdb.go"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -70,9 +70,15 @@ func CreateUser(username string, password string, email string) (interface{}, er
 		return nil, fmt.Errorf("email_already_exists")
 	}
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+
+	if err != nil {
+		panic(err)
+	}
+
 	data, err := db.Query("INSERT INTO user (username, password, email) VALUES ($username, $password, $email);", User{
 		Username: username,
-		Password: password,
+		Password: string(hashedPassword),
 		Email:    email,
 	})
 
@@ -128,8 +134,13 @@ func VerifyUser(username string, password string) (interface{}, error) {
 
 	userMap := user.([]interface{})[0].(map[string]interface{})
 	userData := userMap["result"].([]interface{})[0].(map[string]interface{})
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	
+	if err != nil {
+		panic(err)
+	}
 
-	if userData["password"] != password {
+	if password !=  string(hashedPassword) {
 		util.Log("Database", "Invalid Password")
 		return nil, fmt.Errorf("invalid_password")
 	}
