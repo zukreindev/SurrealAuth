@@ -64,21 +64,21 @@ func CreateUser(username string, password string, email string) (interface{}, er
 		util.Log("Database", "User already exists")
 		return nil, fmt.Errorf("user_already_exists")
 	}
-	 
+
 	if len(emailSearchMap) > 0 {
 		util.Log("Database", "Email already exists")
 		return nil, fmt.Errorf("email_already_exists")
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
-
+	hashedPassword, err := hashPassword(password)
+	
 	if err != nil {
 		panic(err)
 	}
 
 	data, err := db.Query("INSERT INTO user (username, password, email) VALUES ($username, $password, $email);", User{
 		Username: username,
-		Password: string(hashedPassword),
+		Password: hashedPassword,
 		Email:    email,
 	})
 
@@ -91,11 +91,7 @@ func CreateUser(username string, password string, email string) (interface{}, er
 }
 
 func VerifyUser(username string, password string) (interface{}, error) {
-	db, err := surrealdb.New(util.GetConfig("database", "url"))
-	if err != nil {
-		panic(err)
-	}
-
+	var err error
 	if _, err = db.Signin(
 		Signin{
 			User: util.GetConfig("database", "user"),
@@ -134,13 +130,14 @@ func VerifyUser(username string, password string) (interface{}, error) {
 
 	userMap := user.([]interface{})[0].(map[string]interface{})
 	userData := userMap["result"].([]interface{})[0].(map[string]interface{})
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
-	
+
 	if err != nil {
 		panic(err)
 	}
 
-	if password !=  string(hashedPassword) {
+	isPasswordValid := checkPassword(password, userData["password"].(string))
+
+	if !isPasswordValid {
 		util.Log("Database", "Invalid Password")
 		return nil, fmt.Errorf("invalid_password")
 	}
@@ -155,4 +152,14 @@ func VerifyUser(username string, password string) (interface{}, error) {
 		Password: password,
 	})
 	return token, nil
+}
+
+func hashPassword(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	return string(hashedPassword), err
+}
+
+func checkPassword(password, hash string) bool {
+	sex := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return sex == nil
 }
