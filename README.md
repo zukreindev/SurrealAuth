@@ -7,11 +7,11 @@ In this project I wrote an authentication system using **gofiber** and **surreal
 
 ## Packages I used in the project
 
-- [color](github.com/fatih/color) - color library for console messages
-- [go-fiber](github.com/gofiber/fiber/v2) - http framework
-- [surrealdb](github.com/surrealdb/surrealdb.go) - database package
-- [jwt](github.com/golang-jwt/jwt/v5) - json webtoken 
-- [ini](github.com/go-ini/ini) - configuration file manager 
+- [color](https://github.com/fatih/color) - color library for console messages
+- [go-fiber](https://github.com/gofiber/fiber/v2) - http framework
+- [surrealdb](https://github.com/surrealdb/surrealdb.go) - database package
+- [jwt](https://github.com/golang-jwt/jwt/v5) - json webtoken 
+- [ini](https://github.com/go-ini/ini) - configuration file manager 
 
 ## Installation
 
