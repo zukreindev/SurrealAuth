@@ -21,6 +21,7 @@ type Signin struct {
 type Condition struct {
 	Username string `json:"username,omitempty"`
 	Email    string `json:"email,omitempty"`
+	Column   string `json:"column,omitempty"`
 }
 
 func CreateUser(username string, password string, email string) (interface{}, error) {
@@ -37,7 +38,7 @@ func CreateUser(username string, password string, email string) (interface{}, er
 		panic(err)
 	}
 
-	_, err = valideUsernameAndEmail(username, email)
+	_, err = validateUsernameAndEmail(username, email)
 
 	if err != nil {
 		return nil, fmt.Errorf("%v", err)
@@ -137,35 +138,30 @@ func checkPassword(password, hash string) bool {
 	return sex == nil
 }
 
-func valideUsernameAndEmail(username string, email string) (interface{}, error) {
-	usernameSearch, err := db.Query("SELECT * FROM user WHERE username = $username limit 1", Condition{
-		Username: username,
+func validateUsernameAndEmail(username, email string) (interface{}, error) {
+    usernameSearch := queryUser("username", username)
+    emailSearch := queryUser("email", email)
+
+    if len(usernameSearch) > 0 {
+        util.Log("Database", "User already exists")
+        return nil, fmt.Errorf("user_already_exists")
+    }
+
+    if len(emailSearch) > 0 {
+        util.Log("Database", "Email already exists")
+        return nil, fmt.Errorf("email_already_exists")
+    }
+
+    return nil, nil
+}
+
+func queryUser(column, value string) []interface{} {
+    query := fmt.Sprintf("SELECT * FROM user WHERE %s = $%s limit 1", column, column)
+    result, err := db.Query(query, Condition{
+		Column: value,
 	})
-	if err != nil {
-		panic(err)
-	}
-
-	emailSearch, err := db.Query("SELECT * FROM user WHERE email = $email limit 1", Condition{
-		Email: email,
-	})
-
-	if err != nil {
-		panic(err)
-	}
-
-	usernameSearchMap := usernameSearch.([]interface{})[0].(map[string]interface{})["result"].([]interface{})
-	emailSearchMap := emailSearch.([]interface{})[0].(map[string]interface{})["result"].([]interface{})
-
-	if len(usernameSearchMap) > 0 {
-		util.Log("Database", "User already exists")
-		return nil, fmt.Errorf("user_already_exists")
-	}
-
-
-	if len(emailSearchMap) > 0 {
-		util.Log("Database", "Email already exists")
-		return nil, fmt.Errorf("email_already_exists")
-	}
-
-	return nil, nil
+    if err != nil {
+        panic(err)
+    }
+    return result.([]interface{})[0].(map[string]interface{})["result"].([]interface{})
 }
