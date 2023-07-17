@@ -3,7 +3,6 @@ package database
 import (
 	"FiberAuthWithSurrealDb/Util"
 	"fmt"
-	"github.com/surrealdb/surrealdb.go"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -25,11 +24,7 @@ type Condition struct {
 }
 
 func CreateUser(username string, password string, email string) (interface{}, error) {
-	db, err := surrealdb.New(util.GetConfig("database", "url"))
-	if err != nil {
-		panic(err)
-	}
-
+	var err error
 	if _, err = db.Signin(
 		Signin{
 			User: util.GetConfig("database", "user"),
@@ -42,32 +37,10 @@ func CreateUser(username string, password string, email string) (interface{}, er
 		panic(err)
 	}
 
-	usernameSearch, err := db.Query("SELECT * FROM user WHERE username = $username limit 1", Condition{
-		Username: username,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	emailSearch, err := db.Query("SELECT * FROM user WHERE email = $email limit 1", Condition{
-		Email: email,
-	})
+	_, err = valideUsernameAndEmail(username, email)
 
 	if err != nil {
-		panic(err)
-	}
-
-	usernameSearchMap := usernameSearch.([]interface{})[0].(map[string]interface{})["result"].([]interface{})
-	emailSearchMap := emailSearch.([]interface{})[0].(map[string]interface{})["result"].([]interface{})
-
-	if len(usernameSearchMap) > 0 {
-		util.Log("Database", "User already exists")
-		return nil, fmt.Errorf("user_already_exists")
-	}
-
-	if len(emailSearchMap) > 0 {
-		util.Log("Database", "Email already exists")
-		return nil, fmt.Errorf("email_already_exists")
+		return nil, fmt.Errorf("%v", err)
 	}
 
 	hashedPassword, err := hashPassword(password)
@@ -162,4 +135,37 @@ func hashPassword(password string) (string, error) {
 func checkPassword(password, hash string) bool {
 	sex := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return sex == nil
+}
+
+func valideUsernameAndEmail(username string, email string) (interface{}, error) {
+	usernameSearch, err := db.Query("SELECT * FROM user WHERE username = $username limit 1", Condition{
+		Username: username,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	emailSearch, err := db.Query("SELECT * FROM user WHERE email = $email limit 1", Condition{
+		Email: email,
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	usernameSearchMap := usernameSearch.([]interface{})[0].(map[string]interface{})["result"].([]interface{})
+	emailSearchMap := emailSearch.([]interface{})[0].(map[string]interface{})["result"].([]interface{})
+
+	if len(usernameSearchMap) > 0 {
+		util.Log("Database", "User already exists")
+		return nil, fmt.Errorf("user_already_exists")
+	}
+
+
+	if len(emailSearchMap) > 0 {
+		util.Log("Database", "Email already exists")
+		return nil, fmt.Errorf("email_already_exists")
+	}
+
+	return nil, nil
 }
