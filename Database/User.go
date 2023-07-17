@@ -26,14 +26,6 @@ type Condition struct {
 
 func CreateUser(username string, password string, email string) (interface{}, error) {
 	var err error
-	if _, err = db.Signin(
-		Signin{
-			User: util.GetConfig("database", "user"),
-			Pass: util.GetConfig("database", "pass"),
-		}); err != nil {
-		panic(err)
-	}
-
 	if _, err = db.Use("auth", "users"); err != nil {
 		panic(err)
 	}
@@ -66,13 +58,6 @@ func CreateUser(username string, password string, email string) (interface{}, er
 
 func VerifyUser(username string, password string) (interface{}, error) {
 	var err error
-	if _, err = db.Signin(
-		Signin{
-			User: util.GetConfig("database", "user"),
-			Pass: util.GetConfig("database", "pass"),
-		}); err != nil {
-		panic(err)
-	}
 	if _, err = db.Use("auth", "users"); err != nil {
 		panic(err)
 	}
